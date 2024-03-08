@@ -136,6 +136,14 @@ class ExpandableTextState extends State<ExpandableText>
     widget.onPrefixTap?.call();
   }
 
+  void expand() {
+    setState(() => _expanded = true);
+  }
+
+  void collapse() {
+    setState(() => _expanded = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final DefaultTextStyle defaultTextStyle = DefaultTextStyle.of(context);

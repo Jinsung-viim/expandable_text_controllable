@@ -76,8 +76,11 @@ List<TextSegment> parseText(String? text) {
       }
 
       final isHashtag = keyword.startsWith('#');
+      print('⚪ keyword : ${ keyword }');
       final isMention = keyword.startsWith('@') && keyword.contains('[!:');
+      print('⚪ isMention : ${ isMention }');
       if (isMention) keyword.replaceAll(RegExp(r'\[!:.*?\]'), '');
+      print('⚪ keyword 2 : ${ keyword }');
 
       segments.add(
           TextSegment(keyword, keyword.substring(1), isHashtag, isMention));

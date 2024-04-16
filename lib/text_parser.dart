@@ -50,7 +50,8 @@ List<TextSegment> parseText(String? text) {
       r'(?<keyword>(#|@)([\p{Alphabetic}\p{Mark}\p{Decimal_Number}\p{Connector_Punctuation}\p{Join_Control}]+)|(?<url>(?:(?:https?|ftp):\/\/)?[-a-z0-9@:%._\+~#=]{1,256}\.[a-z0-9]{1,6}(\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)?))',
       unicode: true);
   final matches = exp.allMatches(text);
-
+  print('⚪ matches : ${ matches }');
+  
   var start = 0;
   matches.forEach((match) {
     // text before the keyword
@@ -62,21 +63,25 @@ List<TextSegment> parseText(String? text) {
       }
       start = match.start;
     }
+    print('⚪ segments.last : ${ segments.last }');
 
     final url = match.namedGroup('url');
     final keyword = match.namedGroup('keyword');
+    print('⚪ keyword 0 : ${ keyword }');
 
     if (url != null) {
       segments.add(TextSegment(url, url, false, false, true));
     } else if (keyword != null) {
       final isWord = match.start == 0 ||
           [' ', '\n'].contains(text.substring(match.start - 1, start));
+      print('⚪ isWord : ${ isWord }');
+      
       if (!isWord) {
         return;
       }
 
       final isHashtag = keyword.startsWith('#');
-      print('⚪ keyword : ${ keyword }');
+      print('⚪ keyword 1 : ${ keyword }');
       final isMention = keyword.startsWith('@') && keyword.contains('[!:');
       print('⚪ isMention : ${ isMention }');
       if (isMention) keyword.replaceAll(RegExp(r'\[!:.*?\]'), '');

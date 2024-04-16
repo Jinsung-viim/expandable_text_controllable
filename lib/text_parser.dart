@@ -8,11 +8,7 @@ class TextSegment {
 
   bool get isText => !isHashtag && !isMention && !isUrl;
 
-  TextSegment(this.text,
-      [this.name,
-      this.isHashtag = false,
-      this.isMention = false,
-      this.isUrl = false]);
+  TextSegment(this.text, [this.name, this.isHashtag = false, this.isMention = false, this.isUrl = false]);
 
   @override
   bool operator ==(Object other) =>
@@ -26,12 +22,7 @@ class TextSegment {
           isUrl == other.isUrl;
 
   @override
-  int get hashCode =>
-      text.hashCode ^
-      name.hashCode ^
-      isHashtag.hashCode ^
-      isMention.hashCode ^
-      isUrl.hashCode;
+  int get hashCode => text.hashCode ^ name.hashCode ^ isHashtag.hashCode ^ isMention.hashCode ^ isUrl.hashCode;
 }
 
 /// Split the string into multiple instances of [TextSegment] for mentions, hashtags, URLs and regular text.
@@ -47,11 +38,10 @@ List<TextSegment> parseText(String? text) {
 
   // parse urls and words starting with @ (mention) or # (hashtag)
   RegExp exp = RegExp(
-      r'(?<keyword>(#|@)([\p{Alphabetic}\p{Mark}\p{Decimal_Number}\p{Connector_Punctuation}\p{Join_Control}]+)|(?<url>(?:(?:https?|ftp):\/\/)?[-a-z0-9@:%._\+~#=]{1,256}\.[a-z0-9]{1,6}(\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)?))',
+      r'(?<keyword>(@[\p{Alphabetic}\p{Mark}\p{Decimal_Number}\p{Connector_Punctuation}\p{Join_Control}]+)\[!:.*?\])|(?<url>(?:(?:https?|ftp):\/\/)?[-a-z0-9@:%._\+~#=]{1,256}\.[a-z0-9]{1,6}(\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)?)',
       unicode: true);
   final matches = exp.allMatches(text);
-  print('⚪ matches : ${ matches }');
-  
+
   var start = 0;
   matches.forEach((match) {
     // text before the keyword
@@ -63,32 +53,25 @@ List<TextSegment> parseText(String? text) {
       }
       start = match.start;
     }
-    print('⚪ segments.last : ${ segments.last }');
 
     final url = match.namedGroup('url');
     final keyword = match.namedGroup('keyword');
-    print('⚪ keyword 0 : ${ keyword }');
 
     if (url != null) {
       segments.add(TextSegment(url, url, false, false, true));
     } else if (keyword != null) {
-      final isWord = match.start == 0 ||
-          [' ', '\n'].contains(text.substring(match.start - 1, start));
-      print('⚪ isWord : ${ isWord }');
-      
+      final isWord = match.start == 0 || [' ', '\n'].contains(text.substring(match.start - 1, start));
       if (!isWord) {
         return;
       }
 
       final isHashtag = keyword.startsWith('#');
-      print('⚪ keyword 1 : ${ keyword }');
-      final isMention = keyword.startsWith('@') && keyword.contains('[!:');
-      print('⚪ isMention : ${ isMention }');
-      if (isMention) keyword.replaceAll(RegExp(r'\[!:.*?\]'), '');
-      print('⚪ keyword 2 : ${ keyword }');
+      final RegExp regExp = RegExp(r'\[!:([^[\]]*)\]');
+      final String userId = regExp.firstMatch(keyword)?.group(1) ?? '';
+      final isMention = keyword.startsWith('@') && userId.isNotEmpty;
+      final replacedText = isMention ? keyword.replaceAll(RegExp(r'\[!:.*?\]'), '') : keyword;
 
-      segments.add(
-          TextSegment(keyword, keyword.substring(1), isHashtag, isMention));
+      segments.add(TextSegment(replacedText, replacedText.substring(1), isHashtag, isMention));
     }
 
     start = match.end;
